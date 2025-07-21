@@ -82,3 +82,39 @@ header_t* get_free_block(size_t req_sz){
     return NULL;
 }
 
+void free(void* block){
+    header_t *header, *tmp;
+    void* prgmbrk;
+
+    if(!block){
+        return;
+    }
+
+    pthread_mutex_lock(&global_malloc_lock);
+    header = (header_t*)block - 1;
+
+    prgmbrk = sbrk(0);
+    if((char*)block + header->s.sz == prgmbrk){
+        if(head == tail){
+            head = tail = NULL;
+        }
+        else{
+            tmp = head;
+            while(tmp){
+                if(tmp->s.next == tail){
+                    tmp->s.next = NULL;
+                    tail = tmp;
+                }
+                tmp = tmp->s.next;
+            }
+        }
+
+        sbrk(0 - sizeof(header_t) - header->s.sz);
+        pthread_mutex_unlock(&global_malloc_lock);
+        return;
+    }
+
+    header->s.free = 1;
+    pthread_mutex_unlock(&global_malloc_lock);
+}
+
