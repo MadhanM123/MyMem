@@ -21,9 +21,6 @@ header_t *head, *tail;
 
 pthread_mutex_t global_malloc_lock;
 
-
-
-
 void* malloc(size_t size){
     size_t tot_sz;
     void* block;
@@ -116,5 +113,51 @@ void free(void* block){
 
     header->s.free = 1;
     pthread_mutex_unlock(&global_malloc_lock);
+}
+
+void* calloc(size_t num, size_t nsz){
+    size_t sz;
+    void* blk;
+
+    if(!num || !nsz){
+        return NULL;
+    }
+
+    sz = num * nsz;
+
+    //Mult overflow check
+    if(nsz != sz / num){
+        return NULL;
+    }
+
+    blk = malloc(sz);
+    if(!blk){
+        return NULL;
+    }
+
+    memset(blk, 0, sz);
+    return blk;
+}
+
+void* realloc(void* blk, size_t sz){
+    header_t* header;
+    void* ret;
+
+    if(!blk || !sz){
+        return malloc(sz);
+    }
+
+    header = (header_t*)blk - 1;
+    if(header->s.sz >= sz){
+        return blk;
+    }
+
+    ret = malloc(sz);
+    if(ret){
+        memcpy(ret, blk, header->s.sz);
+        free(blk);
+    }
+
+    return ret;
 }
 
