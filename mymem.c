@@ -21,6 +21,19 @@ header_t *head, *tail;
 
 pthread_mutex_t global_malloc_lock;
 
+header_t* get_free_block(size_t req_sz){
+    header_t* curr = head;
+
+    while(curr){
+        if(curr->s.free && curr->s.sz >= req_sz){
+            return curr;
+        }
+        curr = curr->s.next;
+    }
+
+    return NULL;
+}
+
 void* malloc(size_t size){
     size_t tot_sz;
     void* block;
@@ -64,19 +77,6 @@ void* malloc(size_t size){
     pthread_mutex_unlock(&global_malloc_lock);
 
     return (void*)(header + 1);
-}
-
-header_t* get_free_block(size_t req_sz){
-    header_t* curr = head;
-
-    while(curr){
-        if(curr->s.free && curr->s.sz >= req_sz){
-            return curr;
-        }
-        curr = curr->s.next;
-    }
-
-    return NULL;
 }
 
 void free(void* block){
