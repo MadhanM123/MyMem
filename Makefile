@@ -8,6 +8,9 @@ SRC = mymem.c
 CC = gcc
 CFLAGS = -Wall -fPIC -shared
 
+LIBDIR := $(shell pwd)
+LDLIB := $(LIBDIR)/$(LIBNAME)
+
 # Default target
 all: $(LIBNAME)
 
@@ -16,7 +19,7 @@ $(LIBNAME): $(SRC)
 
 # Run test with LD_PRELOAD
 run: $(LIBNAME)
-	LD_PRELOAD=$(PWD)/$(LIBNAME) ls
+	LD_PRELOAD=$(LDLIB) ls
 
 # Clean build files
 clean:
